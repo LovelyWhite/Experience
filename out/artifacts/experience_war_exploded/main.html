@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="主页面">
+    <meta name="author" content="lw">
+    <title>实验</title>
+    <script src="./js/popper.min.js"></script>
+    <script src="./js/jquery.slim.min.js"></script>
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>
+    <script src="./js/vue.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/sweetalert.min.js"></script>
+    <link href="./js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/main.css" rel="stylesheet">
+</head>
+<script>
+    window.onload = function () {
+        var $main = new Vue(
+            {
+                el: "#main",
+                data:
+                    {
+                        filter: "",
+                        experience: [],
+                        user:""
+                    },
+                methods:
+                    {
+                        getExperience: function () {
+                            let temp =
+                                {
+                                    filter: this.filter,
+                                };
+                            let data = new URLSearchParams();
+                            data.append("type", "experience");
+                            data.append("data", JSON.stringify(temp));
+                            axios.post("./request", data).then((response) => {
+                                if (response.data.type === "success") {
+                                    this.experience = JSON.parse(response.data.data);
+                                    swal("提示", "列表更新成功", "success");
+                                }
+                                else if (response.data.type === "failed") {
+                                    swal("提示", "失败", "error");
+                                }
+                                else if (response.data.type === "null") {
+                                    swal("提示", "无实验数据", "info");
+                                }
+                            });
+                        },
+                        //获取登录数据
+                        getLogin : function () {
+                            let temp =
+                                {
+                                    uuid: sessionStorage.getItem("uuid"),
+                                };
+                            let data = new URLSearchParams();
+                            data.append("type", "login");
+                            data.append("data",JSON.stringify(temp));
+                            axios.post("./request", data).then((response) => {
+                                if (response.data.type === "success") {
+                                   this.user =  JSON.parse(response.data.data);
+                                    // console.log(tUser);
+                                    // this.$set(this.user,'name',tUser.name);
+                                    // this.$set(this.user,'type',tUser.type);
+                                    // this.$set(this.user,'username',tUser.username);
+                                    //swal("提示", "列表更新成功", "success");
+                                }
+                                else if (response.data.type === "failed") {
+                                    //swal("提示", "失败", "error");
+                                }
+                                else if (response.data.type === "notOnline") {
+                                    //swal("提示", "无实验数据", "info");
+                                }
+                            });
+                        },
+                        logout:function () {
+                            let temp =
+                                {
+                                    uuid: sessionStorage.getItem("uuid"),
+                                };
+                            let data = new URLSearchParams();
+                            data.append("type", "logout");
+                            data.append("data",JSON.stringify(temp));
+                            axios.post("./request", data).then((response) => {
+                                if (response.data.type === "success") {
+                                    swal("提示", "退出成功", "success");
+                                    setTimeout(function () {
+                                        window.location.href="./";
+                                    },3000);
+                                }
+                                else if (response.data.type === "failed") {
+                                    swal("提示", "失败", "error");
+                                }
+                                else if (response.data.type === "notOnline") {
+                                    swal("提示", "无用户在线", "error");
+                                }
+                            });
+                        },
+                        startExperience:function (src) {
+                            sessionStorage.setItem("src",src);
+                            window.location.href="./experience.html";
+                        }
+                    }
+            }
+        );
+        $main.getExperience();
+        $main.getLogin();
+    }
+</script>
+<body>
+<div style="margin-top: 40px" id="main">
+    <header>
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <a class="navbar-brand" href="./main.html">实验列表</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item form-inline">
+                        <a class="nav-link disabled" href="#">{{user.username}}</a>
+                        <a style="margin-left: 10px" class="nav-link disabled" href="#">{{user.name}}</a>
+                    </li>
+                </ul>
+                <form class="form-inline mt-2 mt-md-0">
+                    <input v-model="filter" class="form-control mr-sm-2" type="text" placeholder="关键词"
+                           aria-label="Search">
+                    <button @click="getExperience" class="btn btn-outline-success my-2 my-sm-0" type="button">查找
+                    </button>
+                    <button @click="logout" style="margin-left: 10px" class="btn btn-outline-danger my-2 my-sm-0" type="button">退出登录
+                    </button>
+                </form>
+            </div>
+        </nav>
+    </header>
+    <main role="main">
+        <div class="album py-5 bg-light">
+            <div class="container">
+                <div class="row">
+                    <div v-for="item in experience" class="col-md-4">
+                        <div class="card mb-4 box-shadow">
+                            <img v-bind:src="item.img" class="card-img-top"
+                                 style="height: 225px; width: 100%; display: block;" data-holder-rendered="true">
+                            <div class="card-body">
+                                <strong>{{item.name}}</strong>
+                                <p style="height: 100px;overflow:hidden;" class="card-text">{{item.purpose}}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <button type="button" @click="startExperience(item.src)" class="btn btn-sm btn-outline-secondary">开始实验</button>
+                                    </div>
+                                    <small class="text-muted">{{item.type}}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="模拟仿真实验">
+    <meta name="author" content="lw">
+    <title>模拟仿真实验</title>
+    <script src="../js/popper.min.js"></script>
+    <script src="../js/jquery.slim.min.js"></script>
+    <script src="../js/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/sweetalert.min.js"></script>
+    <link href="../js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/signin.css" rel="stylesheet">
+</head>
+<script>
+    window.onload = function () {
+        var login = new Vue(
+            {
+                el: "#loginForm",
+                data:
+                    {
+                        username: "",
+                        password: ""
+                    },
+                methods:
+                    {
+                        doLogin: function () {
+                            let temp =
+                                {
+                                    username: this.username,
+                                    password: this.password,
+                                    role:"teacher"
+                                };
+                            let data = new URLSearchParams();
+                            data.append("type", "verify");
+                            data.append("data", JSON.stringify(temp));
+                            axios.post("../request", data).then((response) => {
+                                if (response.data.type === "success") {
+                                    //设置uuid,以后每次都通过uuid来访问数据
+                                    sessionStorage.setItem("uuid", response.data.data);
+                                    swal("提示", "登陆成功", "success");
+                                    window.location.href = './main.html';
+                                }
+                                else if (response.data.type === "notExist") {
+                                    swal("提示", "用户不存在", "info");
+                                }
+                                else if (response.data.type === "passwordError") {
+                                    swal("提示", "密码错误", "warning");
+                                }
+                                else if (response.data.type === "failed") {
+                                    swal("提示", "请输入账号密码", "error");
+                                }
+                            });
+                        }
+                    }
+            }
+        );
+    }
+</script>
+<body class="text-center">
+<form class="form-signin" id="loginForm">
+    <h1 class="h3 mb-3 font-weight-normal">管理员登录</h1>
+    <label for="inputUserName" class="sr-only">管理员账号</label>
+    <input type="text" v-model="username" id="inputUserName" class="form-control" placeholder="Account" required=""
+           autofocus="">
+    <label for="inputPassword" class="sr-only">密码</label>
+    <input type="password" v-model="password" id="inputPassword" class="form-control" placeholder="Password" required="">
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" value="remember-me"> 记住密码
+        </label>
+    </div>
+    <button @click="doLogin" class="btn btn-lg btn-primary btn-block" type="button">登录</button>
+    <p class="mt-5 mb-3 text-muted">© 2019</p>
+</form>
+</body>
+</html>

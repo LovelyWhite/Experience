@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="模拟仿真实验">
+    <meta name="author" content="lw">
+    <title>管理端-模拟仿真实验</title>
+    <script src="../js/popper.min.js"></script>
+    <script src="../js/jquery.slim.min.js"></script>
+    <script src="../js/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/sweetalert.min.js"></script>
+    <link href="../js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<script>
+    window.onload = function () {
+        var $main = new Vue(
+            {
+                el: "#main",
+                data:
+                    {
+                        filter: "",
+                        experience: [],
+                        user: ""
+                    },
+                methods:
+                    {
+                        getExperience: function () {
+                            let temp =
+                                {
+                                    filter: this.filter,
+                                };
+                            let data = new URLSearchParams();
+                            data.append("type", "experience");
+                            data.append("data", JSON.stringify(temp));
+                            axios.post("../request", data).then((response) => {
+                                if (response.data.type === "success") {
+                                    this.experience = JSON.parse(response.data.data);
+                                    swal("提示", "列表更新成功", "success");
+                                }
+                                else if (response.data.type === "failed") {
+                                    swal("提示", "失败", "error");
+                                }
+                                else if (response.data.type === "null") {
+                                    swal("提示", "无实验数据", "info");
+                                }
+                            });
+                        },
+                        uploadChange:function () {
+
+                        }
+                    }
+            }
+        );
+        $main.getExperience();
+    }
+</script>
+<body>
+<div id="main">
+    <table class="list-group">
+        <tr v-for="item in experience" class="list-group-item">
+            <td width="100%">
+                <strong class="align-self-center">{{item.name}}</strong>
+            </td>
+            <td>
+                <button class="btn btn-danger btn-block" style="width: 70px;" type="button">删除</button>
+            </td>
+        </tr>
+    </table>
+    <div class="form-group" style="margin: 20px">
+        <input type="text" class="col-4 align-items-center" placeholder="选择文件">
+        <label>
+              <span class="btn btn-primary">
+              <i class="glyphicon glyphicon-folder-open"></i> 浏览文件
+              <input @change="uploadChange" type="file" style="display: none;" accept="application/zip">
+          </span>
+        </label>
+        <button class="btn btn-info" style="width: 70px;" type="button">上传</button>
+    </div>
+</div>
+</body>
+</html>
